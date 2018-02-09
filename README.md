@@ -1,0 +1,2 @@
+# ocrserver
+baidu imgocr
