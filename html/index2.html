@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>图片文件识别</title>
+    <script src="http://p0.ifengimg.com/l/2018/3/89963c6e48265a0/jquery-1.12.4.min.js" type="text/javascript" charset="utf-8"></script>
+</head>
+<body>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" name="upimgfile"/>
+        <input type="button" value="上传图片" id="upimgbtn" onclick="uploadimg()"/>
+    </form>
+    <div>
+        <input type="text" name="imgurl" id="imgurl" />
+        <button type="button" id="checkimg" onclick="urlcheck()">检测图片</button>
+    </div>
+
+    <div>
+        <textarea id="showresult" name="showresult" id="" cols="100" rows="10" ></textarea>
+    </div>
+
+    <p>
+        http://aip.bdstatic.com/portal/dist/1516366381477/ai_images/technology/ocr-general/general/demo-card-2.jpg
+    </p>
+    <input type="button" value="添加用户" onclick="addUser()">
+    <input type="button" value="编辑用户" onclick="updateUser()">
+    <input type="button" value="用户登陆" onclick="login()">
+    <input type="button" value="数据添加" onclick="addHistory()">
+
+    <script>
+        var showtxtbox = $('#showresult');
+
+        /**
+         * url方式识别图片文字
+         */
+        function urlcheck() {
+            var url = $('#imgurl').val();
+            var reg = /(http|ftp|https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&:/~\+#]*[\w\-\@?^=%&/~\+#])?.(jpg|png|jpeg|bmp)/;
+            if(!reg.test(url)){
+                alert('输入的网址不合法');
+            }else{
+                $.ajax({
+                    url:'/urlocr',
+                    type:'post',
+                    data:{imgurl:url},
+                    success:function(data){
+                        if(data == ''){
+                            showtxtbox.val('识别失败');
+                            return;
+                        }else{
+                            showtxtbox.val(data);
+                        }
+
+                    }
+                })
+            };
+        }
+
+        /**
+         * 上传图片文件方式识别文字
+         */
+        function uploadimg() {
+            showtxtbox.val('');
+            $.ajax({
+                url: '/upload',
+                type: 'POST',
+                cache: false,
+                data: new FormData($('#uploadForm')[0]),
+                processData: false,
+                contentType: false
+            }).done(function(res) {
+                if(res == ''){
+                    showtxtbox.val('识别失败');
+                    return;
+                }else{
+                    showtxtbox.val(res);
+                }
+
+            }).fail(function(res) {});
+        }
+
+
+        /*
+        * 创建用户
+        * */
+
+        function addUser(){
+            var username = '色散safw4';
+            var password = 123456;
+            $.ajax({
+                url:'/user/add',
+                type:'POST',
+                data:{username:username,password:password},
+                success:function(data){
+                    console.log(data);
+                }
+            })
+        }
+
+        /**
+         * 编辑用户
+         */
+        function updateUser() {
+            var id = 3;
+            var nickname = 'baozi';
+            $.ajax({
+                url:'/user/update',
+                type:'POST',
+                data:{id:id,nickname:nickname},
+                success:function(data){
+                    console.log(data);
+                }
+            })
+        }
+
+        /**
+         * 用户登陆
+         */
+        function login() {
+            var username = '色散safw4';
+            var password = 123456;
+            $.ajax({
+                url:'/user/login',
+                type:'POST',
+                data:{username:username,password:password},
+                success:function(data){
+                    console.log(data);
+                },
+                error:function(jqXHR, textStatus, errorThrown){
+                    console.log(jqXHR.responseText);
+                }
+            })
+        }
+
+
+
+        /*
+* 添加转换数据
+* */
+
+        function addHistory(){
+            var file = 'aaa.jpg';
+            var text='苯有';
+            $.ajax({
+                url:'/history/add',
+                type:'POST',
+                data:{file:file,text:text},
+                success:function(data){
+                    console.log(data);
+                }
+            })
+        }
+    </script>
+</body>
+</html>

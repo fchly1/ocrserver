@@ -1,0 +1,26 @@
+{
+  "name": "ocrserver",
+  "version": "1.0.0",
+  "description": "ocr img ",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "qingcheng",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.18.2",
+    "cors": "^2.8.4",
+    "express": "^4.16.2",
+    "express-session": "^1.15.6",
+    "moment": "^2.20.1",
+    "multer": "^1.3.0",
+    "mysql": "^2.15.0",
+    "passport": "^0.4.0",
+    "passport-local": "^1.0.0",
+    "pdfjs-dist-for-node": "^1.0.892-rc.1",
+    "sequelize": "^3.31.1",
+    "superagent": "^3.8.2",
+    "tracer": "^0.8.11"
+  }
+}
