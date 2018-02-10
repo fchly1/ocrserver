@@ -80,7 +80,7 @@
         }
         if (filetype.indexOf('pdf') > -1) {
           pdftoimg(file, function (data) {
-            console.log(data);
+            //console.log(data);
             that.imgurl = data.file;
             that.items = [];
             that.isDisabled = null;
@@ -94,7 +94,7 @@
           // formdata.append('upimgfile', e.target.files[0]);
 
           uploadimgdist(file, function (data) {
-            console.log(data);
+            //console.log(data);
             that.imgurl = data.file;
             that.items = [];
             that.isDisabled = null;

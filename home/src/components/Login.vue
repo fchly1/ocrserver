@@ -52,10 +52,13 @@
             that.$router.push('/');
           }
           //alert(data.info);
-          // if(data.status){
-          //   that.$store.commit('editLogin');
-          //
-          // }
+          if(data.info == "用户名或密码不正确"){
+            that.$store.commit('addInfoBox',{
+              text:'用户名或密码不正确',
+              type:'alert-danger'
+            });
+
+          }
         })
       }
     }

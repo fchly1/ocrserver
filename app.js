@@ -13,9 +13,11 @@ var expressSession = require('express-session');
 var fs = require('fs');
 var userRouter = require('./router/user');
 var histroyRouter = require('./router/History');
-var passport = require('passport');
+var passport = require('./apps/auth/passport.config');
 var LocalStrategy = require('passport-local').Strategy;
 var User = require('./config/model').User;
+var Balance = require('./config/model').Balance;
+
 var log = require('tracer').colorConsole({ level: 2})// 日志
 var md5 = require('./apps/common/md5');
 
@@ -36,36 +38,7 @@ app.use(expressSession({secret: 'pdfocr', cookie: {maxAge: 3600000}}));
 app.use(passport.initialize());
 app.use(passport.session());
 
-passport.use(new LocalStrategy(
-    function (username, password, done) {
-        User.findOne({where: {username: username}}).then(function (result) {
-            //console.log(result);
-            if (result != null) {
-                if (result.password == md5(password)) {
-                    return done(null, result);
-                } else {
-                    log.error('密码错误');
-                    return done(null, false, { message: '密码错误' });
 
-                }
-            } else {
-                log.error('用户不存在');
-                return done(null, false, { message: '用户不存在' });
-            }
-        });
-    }
-));
-
-
-
-// serializeUser 用户登录验证成功以后将会把用户的数据存储到 session 中
-passport.serializeUser(function(user, done) {
-    done(null, user);
-});
-// deserializeUser 每次请求的时将从 session 中读取用户对象，并将其封装到 req.user
-passport.deserializeUser(function(user, done) {
-    return done(null, user);
-});
 
 app.get('/', function (req, res) {
 
@@ -108,6 +81,24 @@ app.post('/upload', upload.single('upimgfile'), function (req, res, next) {
             }
 
             ocrfun.sendocr(filepath, function (text) {
+                if(req.isAuthenticated()){
+                    Balance.findOne({where:{userId:req.user.id}}).then(function(data){
+                        return data.decrement('balance', {by: 1})
+
+                    }).then(function(data){
+                        //data.reload();
+                        console.log(data.balance);
+                        if(data.balance < 0){
+                            // return res.json({
+                            //     info:'余额不足请充值',
+                            //     text:'没余额了哦'
+                            // })
+                            console.log('余额不足请充值');
+                            return false;
+                        }
+                    })
+                }
+
                 var result = '';
                 var words = text.words_result;
                 if (words) {
@@ -115,6 +106,7 @@ app.post('/upload', upload.single('upimgfile'), function (req, res, next) {
                         result += words[i].words + ' \n ';
                     }
                 }
+                //console.log(req.user);
                 res.json({
                     file: config.host + 'uploads/images/' + req.file.originalname,
                     text: result,
@@ -136,13 +128,13 @@ app.post('/urlocr', function (req, res, next) {
         if (words) {
             for (var i = 0; i < words.length; i++) {
                 result += words[i].words + ' \n ';
-            }
-        }
+            };
+        };
 
         res.json({
             file: imgurl,
             text: result,
-            time: moment().format('YYYY-MM-DD HH:mm:ss')
+            time: new Date()
         });
     });
 

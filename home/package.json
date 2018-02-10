@@ -16,6 +16,7 @@
   "dependencies": {
     "bootstrap": "^3.3.7",
     "clipboard": "^1.7.1",
+    "moment": "^2.20.1",
     "pdfjs-dist-for-node": "^1.0.892-rc.1",
     "superagent": "^3.8.2",
     "vue": "^2.5.2",

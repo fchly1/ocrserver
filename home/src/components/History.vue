@@ -11,7 +11,7 @@
       </tr>
       </thead>
       <tbody>
-      <tr v-for="(history,index) in HistoryData">
+      <tr v-for="(history,index) in showData">
         <td scope="row">{{ index + 1 }}</td>
         <td>
           <a :href="history.file" download="pdfocr">下载</a>
@@ -22,12 +22,21 @@
 
         </td>
         <td>
-          {{history.time ? history.time : history.updatedAt}}
+          {{history.time ? history.time : history.updatedAt | moment}}
         </td>
       </tr>
       </tbody>
 
     </table>
+    <div>
+      <ul class="pagination">
+        <li><a href="#" @click="pageClick(currPage-2)">&laquo;</a></li>
+        <li v-for="index in indexs" :class="{ 'active': currPage == index+1}">
+          <a a href="#" @click="pageClick(index)">{{index+1}}</a>
+        </li>
+        <li><a href="#" @click="pageClick(currPage)">&raquo;</a></li>
+      </ul>
+    </div>
   </div>
 </template>
 
@@ -36,9 +45,20 @@
 
   import Clipboard from 'clipboard';
   import $ from 'jquery';
+  import moment from 'moment';
 
   export default {
     name: "History",
+    data: function () {
+      return {
+        total: 1,
+        currPage: 1,
+        pageNum: 10,
+        pages: 1,
+        showData: [],
+        pageData: this.$store.state.histories
+      }
+    },
     methods: {
       copy: function (ev) {
         var id = ev.target.id;
@@ -54,11 +74,36 @@
           clipboard.destroy()
         })
 
+      },
+      pageClick: function (index) {
+
+        this.currPage = index + 1;
+        if (this.currPage < 1) {
+          this.currPage = 1;
+          return false;
+        }else if(this.currPage>this.pages){
+          this.currPage = this.pages;
+          return false;
+        }
+        var startPos = index * this.pageNum;
+        var endPos = (index + 1) * this.pageNum;
+        if (endPos > this.total) {
+          endPos = this.total;
+        };
+        this.showData = [];
+        for (var i = startPos; i < endPos; i++) {
+          this.showData.push(this.pageData[i]);
+        };
+
       }
     },
     computed: {
-      HistoryData: function () {
-        return this.$store.state.histories;
+      indexs: function () {
+        var indexs = [];
+        for (var i = 0; i < this.pages; i++) {
+          indexs.push(i)
+        }
+        return indexs;
       }
     },
     filters: {
@@ -69,10 +114,19 @@
         ;
         //console.log(value);
         return value.substring(0, 35);
+      },
+      moment:function(value){
+        return moment(value).format("YYYY-MM-DD HH:mm:ss");
       }
     },
     mouted: function () {
       $('[data-toggle="tooltip"]').tooltip();
+      //this.pageClick(0);
+    },
+    created: function () {
+      this.total = this.pageData.length;
+      this.pages = Math.ceil(this.total / this.pageNum);
+      this.pageClick(0);
     }
 
   }

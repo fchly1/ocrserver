@@ -4,6 +4,8 @@ baidu imgocr
 
 使用express+vue+bootstrap+mysql
 
+登陆验证用的passport
+
 config文件夹没有加上，自己行加个配置即可
 ```
 module.exports = {
