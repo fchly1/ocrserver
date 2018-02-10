@@ -4,7 +4,7 @@ var model = require('../config/model');
 var User = model.User;
 var md5 = require('../apps/common/md5');
 var copyobj = require('../apps/common/utils');
-var passport = require('passport');
+var passport = require('../apps/auth/passport.config');
 /**
  * 用户查询通过
  */
@@ -70,17 +70,16 @@ router.post('/login', passport.authenticate('local'),function(req, res) {
 
 
 //登出
-router.get('/loginout',function(req, res) {
-    //console.log(req.user);
+router.get('/loginout',passport.authenticateMiddleware(),function(req, res) {
+
     req.logout();
-        //console.log(req);
-        res.json({info:"登出成功"});
+    res.json({info:"登出成功"});
 
 });
 
 //是否登陆
 router.get('/islogin',function(req, res) {
-    console.log(req.isAuthenticated());
+    //console.log(req.isAuthenticated());
     if (req.isAuthenticated()) {
         var id = req.user.id;
         User.findOne({where:{id:id},include:[{model: model.Order},{model: model.History}] }).then(function(data){
@@ -180,7 +179,7 @@ router.post('/add',function(req,res,next){
  * 用户编辑
  */
 
-router.post('/update',function (req,res,next) {
+router.post('/update',passport.authenticateMiddleware(),function (req,res,next) {
     var id = req.body.id;
     var reqdata = req.body;
 

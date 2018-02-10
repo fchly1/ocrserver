@@ -1,6 +1,7 @@
 var request = require('superagent');
 var gettoken = require('./gettoker');
-var imgbase64 = require('./imgbase64')
+var imgbase64 = require('./imgbase64');
+var model = require('../../config/model');
 
 var ocrfun = {};
 
@@ -26,6 +27,7 @@ ocrfun.ocr =function (base,cb){
                 })
                 .end(function(err,res){
                     console.log('...1');
+
                     cb(res.body);
                 })
         }else{

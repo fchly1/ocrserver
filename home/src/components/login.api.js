@@ -3,7 +3,7 @@ import request from 'superagent'
 import store from '../store/index'
 
 export const userLogin = function(user,pass,cb){
-  request.post('/user/login')
+  request.post(host +'user/login')
     .send({username:user,password:pass})
     .end(function(err,res){
       //console.log(res);

@@ -25,6 +25,9 @@
   import Nav from './components/Nav';
   import Vueinfobox from './components/vue-infobox/vueinfobox';
   import request from 'superagent';
+  import {host} from './config/index'
+
+
 
 export default {
   name: 'App',
@@ -36,7 +39,7 @@ export default {
   },
   created:function(){
     var that = this;
-    request.get('/user/islogin')
+    request.get(host + 'user/islogin')
       .end(function (err, res) {
         if (res.ok) {
           //cb(res.body);

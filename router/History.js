@@ -26,7 +26,7 @@ router.get('/get/:id',function(req,res,next){
 /**
  * 数据添加
  */
-router.post('/add',function(req,res,next){
+router.post('/add',passport.authenticateMiddleware(),function(req,res,next){
     var file = req.body.file;
     var text = req.body.text;
     var historydata = req.body;
