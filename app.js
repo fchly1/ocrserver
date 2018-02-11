@@ -20,6 +20,9 @@ var Balance = require('./config/model').Balance;
 
 var log = require('tracer').colorConsole({ level: 2})// 日志
 var md5 = require('./apps/common/md5');
+var uuid = require('node-uuid');
+var fileinfo = require('fileinfo');
+var filehash = require('./apps/common/filehash');
 
 app.set('json spaces', 4);
 
@@ -49,6 +52,10 @@ app.get('/', function (req, res) {
 app.post('/upload', upload.single('upimgfile'), function (req, res, next) {
     //console.log(req);
     //console.log(req.file);
+    //计算文件md5hash
+    filehash(req.file.path,function(hash){
+        console.log(hash);
+    });
     //判断文件否大于50M
     if (req.file.size > 52428800) {
         //删除临时文件
@@ -58,64 +65,76 @@ app.post('/upload', upload.single('upimgfile'), function (req, res, next) {
             text: '文件太大了'
         })
     }
-    //判断文件类型是否是图片或者pdf文件
-    var rex = /pdf|jpeg|png|jpg/;
-    if (!rex.test(req.file.mimetype)) {
-        //删除临时文件
-        fs.unlink(req.file.path);
-        return res.json({
-            status: '0',
-            text: '文件类型不对'
-        })
-    }
+
     // console.log(req.file.mimetype);
     // console.log(rex.test(req.file.mimetype));
-    var filepath = './' + req.file.destination + req.file.originalname;
-    fs.rename('./' + req.file.path, filepath, function (err) {
-        if (!err) {
-            // console.log(req.file.mimetype.indexOf('pdf'));
-            if (req.file.mimetype.indexOf('pdf') > -1) {
-                return res.json({
-                    file: config.host + '/uploads/images/' + req.file.originalname
-                })
-            }
-
-            ocrfun.sendocr(filepath, function (text) {
-                if(req.isAuthenticated()){
-                    Balance.findOne({where:{userId:req.user.id}}).then(function(data){
-                        return data.decrement('balance', {by: 1})
-
-                    }).then(function(data){
-                        //data.reload();
-                        console.log(data.balance);
-                        if(data.balance < 0){
-                            // return res.json({
-                            //     info:'余额不足请充值',
-                            //     text:'没余额了哦'
-                            // })
-                            console.log('余额不足请充值');
-                            return false;
-                        }
+    fileinfo(req.file.path).then(function(info){
+        //console.log(info);
+        //判断文件类型是否是图片或者pdf文件
+        var rex = /pdf|jpeg|png|jpg/;
+        if (!rex.test(info.mime)) {
+            //删除临时文件
+            fs.unlink(req.file.path);
+            return res.json({
+                status: '0',
+                text: '文件类型不对'
+            })
+        }
+        //获取文件扩展名
+        var ext = info.extension;
+        //生成随机文件名
+        var filename = uuid.v1() + "." +  ext;
+        var filepath = config.uploadPath  + filename ;
+        fs.rename('./' + req.file.path, filepath, function (err) {
+            if (!err) {
+                // console.log(req.file.mimetype.indexOf('pdf'));
+                if (req.file.mimetype.indexOf('pdf') > -1) {
+                    return res.json({
+                        file: config.host + config.showPath + filename
                     })
                 }
 
-                var result = '';
-                var words = text.words_result;
-                if (words) {
-                    for (var i = 0; i < words.length; i++) {
-                        result += words[i].words + ' \n ';
+                ocrfun.sendocr(filepath, function (text) {
+                    if(req.isAuthenticated()){
+                        Balance.findOne({where:{userId:req.user.id}}).then(function(data){
+                            return data.decrement('balance', {by: 1})
+
+                        }).then(function(data){
+                            //data.reload();
+                            console.log(data.balance);
+                            if(data.balance < 0){
+                                // return res.json({
+                                //     info:'余额不足请充值',
+                                //     text:'没余额了哦'
+                                // })
+                                console.log('余额不足请充值');
+                                return false;
+                            }
+                        })
                     }
-                }
-                //console.log(req.user);
-                res.json({
-                    file: config.host + 'uploads/images/' + req.file.originalname,
-                    text: result,
-                    time: moment().format('YYYY-MM-DD HH:mm:ss')
+
+                    var result = '';
+                    var words = text.words_result;
+                    if (words) {
+                        for (var i = 0; i < words.length; i++) {
+                            result += words[i].words + ' \n ';
+                        }
+                    }
+                    //console.log(req.user);
+                    res.json({
+                        file: config.host + config.showPath + filename ,
+                        text: result,
+                        time: new Date()
+                    });
                 });
-            });
-        }
+            }else{
+                res.send({ret_code: '0',info:'上传文件失败'})
+            }
+        })
+        //res.send({ret_code: '0'});
     })
-    //res.send({ret_code: '0'});
+
+
 
 })
 
